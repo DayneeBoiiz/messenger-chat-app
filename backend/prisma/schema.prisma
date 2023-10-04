@@ -1,0 +1,67 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id Int @id @unique @default(autoincrement())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  username String @unique
+  email String @unique
+  hash String
+
+  avatarPicture String? @default("default_avatar.png")
+
+  session Session?
+  
+  conversation Conversation[]
+  seenMessage Message[]
+  sentMessage Message[] @relation("sent")
+}
+
+model Session {
+  id         Int      @id @default(autoincrement())
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  sessionID  String   @unique
+  user       User     @relation(fields: [userID], references: [id])
+  userID     Int      @unique
+}
+
+model Message {
+  id Int @id @default(autoincrement())
+  createdAt DateTime @default(now())
+
+  body String?
+  image String?
+
+  conversation Conversation @relation(fields: [conversationID], references: [uid])
+  conversationID String
+
+  seen User[]
+
+  sender User @relation("sent", fields: [senderID], references: [id])
+  senderID Int
+}
+
+model Conversation {
+  id Int @id @default(autoincrement())
+  createdAt DateTime @default(now())
+  lastMessageAt DateTime @default(now())
+
+  uid String? @unique
+  name String?
+  isGroup Boolean?
+
+  users User[]
+  message Message[]
+}
